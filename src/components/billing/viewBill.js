@@ -66,7 +66,6 @@ export const ViewBill = () => {
             .print-header {
                 margin: 0;
                 padding: 0;
-                
             }
             .print-table {
                 margin: 0;
@@ -74,25 +73,26 @@ export const ViewBill = () => {
                 font-size: 8px; /* Adjust font size to fit content */
                 width: 100%;
                 border-collapse: collapse;
-                border: none;
+                border: none !important;
                 page-break-inside: auto;
-                
             }
             .print-table th, .print-table td {
                 padding: 0 !important;
                 margin: 0 !important;
-                border: 1px solid #ddd !important;
-                
+                border: 1px black solid !important;
             }
             .print-table th.sr-col, .print-table td.sr-col {
                 padding-left: 10px !important; /* Add left padding to the SR column */
             }
-            .print-table .total-cell {
+            .print-table .total-cell1 {
                 padding-left: 10px !important; /* Add left padding to the Total cell */
+                border-radius:0 0 0 8px;
             }
-            .print-table tr:last-child td {
-                border-bottom: 1px solid #ddd; /* Ensure bottom border */
+                .print-table .total-cell2 {
+                padding-left: 10px !important; /* Add left padding to the Total cell */
+                border-radius:0 0 8px 0;
             }
+            
             .print-table {
                 page-break-inside: auto;
                 
@@ -146,7 +146,7 @@ export const ViewBill = () => {
             width: '12%',
             className: 'sr-col',
         },
-       
+
         {
             title: 'Amount',
             dataIndex: 'amount',
@@ -161,7 +161,7 @@ export const ViewBill = () => {
             columns={billingColumns}
             dataSource={records.map((record, index) => ({
                 ...record,
-                sr: index + 1, // Reset serial number for each page
+                sr: pageIndex * recordsPerPage + index + 1, // Maintain serial number across pages
             }))}
             rowKey="id"
             pagination={false}
@@ -176,10 +176,10 @@ export const ViewBill = () => {
 
                 return (
                     <Table.Summary.Row>
-                        <Table.Summary.Cell index={1} colSpan={5} className="total-cell">
+                        <Table.Summary.Cell index={1} colSpan={5} className="total-cell1">
                             Total
                         </Table.Summary.Cell>
-                        <Table.Summary.Cell index={1} className="total-cell">
+                        <Table.Summary.Cell index={1} className="total-cell2">
                             {totalAmount}
                         </Table.Summary.Cell>
                     </Table.Summary.Row>
@@ -209,6 +209,65 @@ export const ViewBill = () => {
                         width: '100%',
                     }}
                 >
+                    <div className="print-header">
+                        <Row>
+                            <Col span={24} style={{
+                                 textAlign: 'center',
+                                  paddingTop: '0px',
+                                   marginTop: '10px',
+                                    borderTop: '1px solid black',
+                                    borderBottom: '1px solid black',
+                                    borderLeft: '1px solid black',
+                                    borderRight: '1px solid black',
+                                    borderRadiusLeft:'10px',
+                                    borderRadius: '10px 10px 0 0',
+                                }}>
+                                <Paragraph style={{ margin: '0' }}><strong>ON APPROVAL / DELIVERY CHALLAN</strong></Paragraph>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col span={24} style={{ textAlign: 'center', paddingTop: '10px', marginTop: '0px', borderBottom: '1px solid black', borderLeft: '1px solid black', borderRight: '1px solid black' }}>
+                                <Paragraph style={{ margin: '0' }}><strong>MJ FASHION MUMBAI</strong></Paragraph>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col span={12} style={{ paddingLeft: '5px', borderRight: '1px solid black', borderBottom: '1px solid black', borderLeft: '1px solid black' }}>
+                                {`Bill #${billing_detail.id}`}
+                            </Col>
+                            <Col span={12} style={{ textAlign: 'right' }}>
+                                <Paragraph style={{
+                                    paddingRight: '10px',
+                                    margin: '0',
+                                    borderBottom: '1px solid black',
+                                    borderRight: '1px solid black'
+                                    }}>
+                                        <strong>Billing Date:</strong> {dayjs(billing_detail.billing_date).format('YYYY-MM-DD')}
+                                </Paragraph>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col span={12} style={{ 
+                                paddingLeft: '5px',
+                                borderRight: '1px solid black',
+                                borderBottom: '1px solid black',
+                                borderLeft: '1px solid black',
+                                borderRadius: '0 0 0 10px',
+                                }}>
+                                {`Name: ${customer.title}. ${customer.name}`}
+                            </Col>
+                            <Col span={12} style={{
+                                paddingRight: '10px',
+                                textAlign: 'right',
+                                borderBottom: '1px solid black',
+                                borderRight: '1px solid black',
+                                borderRadius: '0 0 10px 0',
+                                }}>
+                                <Paragraph style={{ margin: '0' }}><strong>Location:</strong> {customer.location}</Paragraph>
+                            </Col>
+                        </Row>
+                        <Title level={5} style={{ margin: '0', marginTop: '10px' }}>Billing Items</Title>
+                    </div>
+
                     {printTable(pageRecords, index)}
                 </div>
             ))}
@@ -218,56 +277,24 @@ export const ViewBill = () => {
     return (
         <Layout style={{ padding: '0 24px' }}>
             <Content style={{ padding: '14px', minHeight: '280px' }}>
-                <Button 
-                    type="primary" 
-                    icon={<PrinterOutlined />} 
+                <Button
+                    type="primary"
+                    icon={<PrinterOutlined />}
                     onClick={handlePrint}
                     style={{ marginBottom: '10px' }}
                 >
                     Print
                 </Button>
                 <Card
-                    title={
-                        <>
-                            <Row>
-                                <Col span={24} style={{ textAlign: 'center', paddingTop: '0px' ,marginTop: '10px' }}>
-                                    <Paragraph style={{ margin: '0' }}><strong>ON APPROVAL / DELIVERY CHALLAN</strong></Paragraph>
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col span={24} style={{ textAlign: 'center', paddingTop: '0px' ,marginTop: '10px' }}>
-                                    <Paragraph style={{ margin: '0' }}><strong>MJ FASHION MUMBAI</strong></Paragraph>
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col span={12}>
-                                    {`Bill #${billing_detail.id}`}
-                                </Col>
-                                <Col span={12} style={{ textAlign: 'right' }}>
-                                    <Paragraph style={{ margin: '0' }}><strong>Billing Date:</strong> {dayjs(billing_detail.billing_date).format('YYYY-MM-DD')}</Paragraph>
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col span={12}>
-                                    {`Name: ${customer.title}. ${customer.name}`}
-                                </Col>
-                                <Col span={12} style={{ textAlign: 'right' }}>
-                                    <Paragraph style={{ margin: '0' }}><strong>Location:</strong> {customer.location}</Paragraph>
-                                </Col>
-                            </Row>
-                        </>
-                    }
                     ref={componentRef}
-                    className="print-header"
-                    style={{ margin: '0', padding: '0' }}
+                    style={{ margin: '0', padding: '0', border: 'none' }}
                 >
-                    <Title level={5} style={{ margin: '0', marginTop: '10px' }}>Billing Items</Title>
                     {printContent()}
                     <div style={{ textAlign: 'right', marginTop: '10px', fontSize: '8px', margin: '0' }}>
-                    <Paragraph style={{ margin: '0',marginRight:'10px',marginTop:'10px' }}><strong>Total:</strong> {billing_detail.grand_total - billing_detail.tax -billing_detail.packaging}</Paragraph>
-                        <Paragraph style={{ margin: '0',marginRight:'10px' }}><strong>GST:</strong> {billing_detail.tax}</Paragraph>
-                        <Paragraph style={{ margin: '0',marginRight:'10px' }}><strong>Packaging:</strong> {billing_detail.packaging}</Paragraph>
-                        <Paragraph style={{ margin: '0',marginRight:'10px',marginBottom:'10px' }}><strong>Grand Total:</strong> {billing_detail.grand_total}</Paragraph>
+                        <Paragraph style={{ margin: '0', marginRight: '10px', marginTop: '10px' }}><strong>Total:</strong> {billing_detail.grand_total - billing_detail.tax - billing_detail.packaging}</Paragraph>
+                        <Paragraph style={{ margin: '0', marginRight: '10px' }}><strong>GST:</strong> {billing_detail.tax}</Paragraph>
+                        <Paragraph style={{ margin: '0', marginRight: '10px' }}><strong>Packaging:</strong> {billing_detail.packaging}</Paragraph>
+                        <Paragraph style={{ margin: '0', marginRight: '10px' }}><strong>Grand Total:</strong> {billing_detail.grand_total}</Paragraph>
                     </div>
                 </Card>
             </Content>
