@@ -1,0 +1,79 @@
+body {
+  margin: 0;
+}
+
+
+.login-page {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to right, #800080a6, #0000ffa8);
+}
+
+.login-container {
+  width: 100%;
+  max-width: 400px;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #04030324;
+}
+
+.login-form {
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.login-title {
+  text-align: center;
+  margin-bottom: 20px;
+  color: white;
+}
+
+.login-form-button {
+  width: 100%;
+  margin-bottom: 12px;
+  background: linear-gradient(to right, #800080a6, #0000ffa8);
+}
+
+.login-form-button:hover {
+  width: 100%;
+  margin-bottom: 12px;
+  background: #404bff !important;
+}
+
+.login-form .ant-checkbox-wrapper {
+  color: white;
+}
+
+.menu-with-margin {
+  margin-top: 16px; /* Adjust the margin as needed */
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  height: 100%; /* Full height of the header */
+}
+
+.user-name {
+  font-size: 16px;
+  color: #fff; /* White text color */
+}
+
+.ant-picker-clear {
+  display: none;
+}
+
+.print-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.print-table th, .print-table td {
+  border-top: 1px solid #ddd; /* Top border only */
+  border-bottom: 1px solid #ddd; /* Bottom border only */
+  border-left: none; /* Remove left border */
+  border-right: none; /* Remove right border */
+}
