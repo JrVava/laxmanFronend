@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Input, Button, Popconfirm, Layout, Breadcrumb, message, Select, Row, Col, DatePicker, Card } from 'antd';
+import { Form, Input, Button, Popconfirm, Layout, Breadcrumb, message, Select, Row, Col, DatePicker, Card, Spin } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../../util/api';
@@ -10,18 +10,18 @@ import dayjs from 'dayjs';
 const { Option } = Select;
 
 export const EditBill = () => {
+  const [loading, setLoading] = useState(false);
   const user = useSelector((state) => state.auth.user);
-  const { id } = useParams(); // Get the bill ID from the route parameters
+  const { id } = useParams();
   const [total, setTotal] = useState(0);
   const [totalTax, setTotalTax] = useState(0);
   const [grandTotal, setGrandTotal] = useState(0);
-  const [billingToDelete, setBillingToDelete] = useState([]); // State to track IDs of items to delete
+  const [billingToDelete, setBillingToDelete] = useState([]);
 
   const [form] = Form.useForm();
   useDocumentTitle('Edit Billing');
 
   useEffect(() => {
-    // Fetch bill data and set form values
     const fetchBillData = async () => {
       try {
         const { token } = user;
@@ -31,24 +31,24 @@ export const EditBill = () => {
           },
         });
         const { customer, billing_detail, billings } = response.data;
-  
+
         const items = billings.map((item) => ({
           ...item,
-          amount: calculateAmount(item.qty, item.rate), // Calculate initial amount
+          amount: calculateAmount(item.qty, item.rate),
         }));
-       
+
         const billDate = dayjs(billing_detail.billing_date);
 
         form.setFieldsValue({
           title: customer.title,
           customer_name: customer.name,
           location: customer.location,
-          billing_date: billDate, // Set the moment object directly
+          billing_date: billDate,
           items,
           gst: billing_detail.tax,
           packing: billing_detail.packaging,
         });
-        
+
         calculateTotals();
       } catch (error) {
         message.error('Failed to load bill data. Please try again.');
@@ -62,7 +62,7 @@ export const EditBill = () => {
   const handleAdd = () => {
     const fields = form.getFieldValue('items') || [];
     form.setFieldsValue({
-      items: [...fields, { description: '', qty: '', rate: '', amount: '', unit: 'piece' }],
+      items: [...fields, { description: '', qty: '', rate: '', amount: '', unit: 'dozen' }],
     });
   };
 
@@ -89,11 +89,11 @@ export const EditBill = () => {
   const calculateTotals = () => {
     const fields = form.getFieldValue('items') || [];
     const packing = parseFloat(form.getFieldValue('packing') || 0);
-    const gstAmount = parseFloat(form.getFieldValue('gst') || 0); // GST as a flat amount
+    const gstAmount = parseFloat(form.getFieldValue('gst') || 0);
 
     const subTotal = fields.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
 
-    const totalTax = gstAmount; // GST amount added directly
+    const totalTax = gstAmount;
     const grandTotal = (subTotal + totalTax + packing).toFixed(2);
     const total = subTotal.toFixed(2);
 
@@ -140,6 +140,7 @@ export const EditBill = () => {
   ];
 
   const handleSubmit = async (values) => {
+    setLoading(true);
     try {
       calculateTotals();
       const { token } = user;
@@ -150,7 +151,7 @@ export const EditBill = () => {
         total,
         total_tax: totalTax,
         grand_total: grandTotal,
-        billing_to_delete: billingToDelete // Include IDs to delete
+        billing_to_delete: billingToDelete
       }, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -159,6 +160,7 @@ export const EditBill = () => {
       });
       message.success('Bill updated successfully!');
       console.log('API Response:', response.data);
+      setLoading(false);
 
     } catch (error) {
       message.error('Failed to update bill. Please try again.');
@@ -167,17 +169,17 @@ export const EditBill = () => {
   };
 
   return (
-    <Layout style={{ padding: '0 24px 24px' }}>
+    <Layout style={{ padding: '0 16px 16px' }}>
       <Breadcrumb style={{ margin: '16px 0' }} items={breadcrumbItems} />
-      <Card title="Edit Bill" bordered={false} style={{ backgroundColor: 'white', padding: '20px', borderRadius: '18px' }}>
+      <Card title="Edit Bill" bordered={false} style={{ backgroundColor: 'white', padding: '14px', borderRadius: '18px' }}>
         <Form
           form={form}
           name="dynamic_form_nest_item"
           onFinish={handleSubmit}
           autoComplete="off"
         >
-          <Row gutter={16}>
-            <Col span={6}>
+          <Row gutter={[16, 16]} style={{ paddingBottom:'10px' }}>
+            <Col xs={24} md={3}>
               <Form.Item
                 name="title"
                 label="Title"
@@ -193,7 +195,7 @@ export const EditBill = () => {
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={9}>
+            <Col xs={24} md={6}>
               <Form.Item
                 name="customer_name"
                 label="Customer Name"
@@ -202,10 +204,7 @@ export const EditBill = () => {
                 <Input placeholder="Customer Name" />
               </Form.Item>
             </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={9}>
+            <Col xs={24} md={6}>
               <Form.Item
                 name="location"
                 label="Location"
@@ -214,8 +213,7 @@ export const EditBill = () => {
                 <Input placeholder="Location" />
               </Form.Item>
             </Col>
-
-            <Col span={9}>
+            <Col xs={24} md={6}>
               <Form.Item
                 name="billing_date"
                 label="Billing Date"
@@ -234,11 +232,11 @@ export const EditBill = () => {
               <>
                 {fields.map(({ key, name }, index) => (
                   <Card key={key} bordered={true} style={{ marginBottom: 16 }}>
-                    <Row gutter={16} align="middle">
-                      <Col span={2}>
+                    <Row gutter={[16, 16]} align="middle" style={{ display: 'flex', alignItems: 'baseline' }}>
+                      <Col xs={24} md={1}>
                         SR. {index + 1}
                       </Col>
-                      <Col span={4}>
+                      <Col xs={24} md={8}>
                         <Form.Item
                           name={[name, 'description']}
                           label="Description"
@@ -248,7 +246,7 @@ export const EditBill = () => {
                         </Form.Item>
                       </Col>
 
-                      <Col span={4}>
+                      <Col xs={24} md={3}>
                         <Form.Item
                           name={[name, 'qty']}
                           label="Quantity"
@@ -262,8 +260,19 @@ export const EditBill = () => {
                           />
                         </Form.Item>
                       </Col>
-
-                      <Col span={4}>
+                      <Col xs={24} md={4}>
+                        <Form.Item
+                          name={[name, 'unit']}
+                          label="Unit"
+                          rules={[{ required: false, message: 'Unit (optional)' }]}
+                        >
+                          <Select placeholder="Select Unit">
+                            <Option value="dozen">Dozen</Option>
+                            <Option value="piece">Piece</Option>
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={3}>
                         <Form.Item
                           name={[name, 'rate']}
                           label="Rate"
@@ -278,7 +287,7 @@ export const EditBill = () => {
                         </Form.Item>
                       </Col>
 
-                      <Col span={4}>
+                      <Col xs={24} md={3}>
                         <Form.Item
                           name={[name, 'amount']}
                           label="Amount"
@@ -288,20 +297,7 @@ export const EditBill = () => {
                         </Form.Item>
                       </Col>
 
-                      <Col span={4}>
-                        <Form.Item
-                          name={[name, 'unit']}
-                          label="Unit"
-                          rules={[{ required: false, message: 'Unit (optional)' }]}
-                        >
-                          <Select placeholder="Select Unit">
-                          <Option value="piece">Piece</Option>
-                          <Option value="dozen">Dozen</Option>
-                          </Select>
-                        </Form.Item>
-                      </Col>
-
-                      <Col span={2}>
+                      <Col xs={6} md={1}>
                         <Popconfirm
                           title="Are you sure you want to delete this item?"
                           onConfirm={() => handleRemove(index)}
@@ -330,8 +326,8 @@ export const EditBill = () => {
             )}
           </Form.List>
 
-          <Row gutter={16}>
-            <Col span={12} offset={12}>
+          <Row gutter={[16, 16]} style={{ paddingTop: '10px', paddingBottom: '10px' }}>
+            <Col xs={24} md={{ span: 12, offset: 12 }}>
               <Card title="Totals" bordered={true}>
                 <Form.Item label="Total">
                   <div>{total === 0 ? "0.00" : total}</div>
@@ -362,8 +358,8 @@ export const EditBill = () => {
           </Row>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Save Changes
+            <Button type="primary" htmlType="submit" disabled={loading}>
+              {loading ? <Spin /> : 'Save Changes'}
             </Button>
           </Form.Item>
         </Form>

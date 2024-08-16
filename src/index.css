@@ -130,3 +130,83 @@ body {
 .print-table .total-cell {
   font-weight: bold;
 }
+
+
+
+
+
+
+
+/* Base styles */
+.site-layout {
+  margin: 0; /* Remove default margin */
+}
+
+.header-container {
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.content-container {
+  margin: 8px; /* Reduce margin for smaller screens */
+  padding: 0; /* Remove default padding */
+}
+
+.content-background {
+  padding: 16px; /* Reduce padding to minimize extra space */
+  min-height: 360px;
+  margin: 0 auto; /* Center the content horizontally */
+  max-width: 100%; /* Ensure it does not exceed the viewport width */
+}
+
+/* Responsive styles for smaller screens */
+@media (max-width: 768px) {
+  .ant-form-item {
+    margin-bottom: 0px; /* Adjust this value as needed */
+  }
+  .site-layout {
+      margin: 0; /* Remove margins for small screens */
+  }
+
+  .header-container {
+      padding: 0 8px;
+  }
+
+  .content-container {
+      margin: 4px; /* Further reduce margin for very small screens */
+  }
+
+  .footer-container {
+      padding: 0 8px;
+  }
+
+  .menu-with-margin {
+      padding-top: 56px; /* Adjust top padding to account for header */
+  }
+
+  .logo {
+      display: none; /* Hide logo on small screens */
+  }
+
+  .site-layout-background {
+    padding: 0px !important;
+      margin-left: 0; /* Adjust content margin for smaller screens */
+  }
+
+  .menu-button {
+      display: block; /* Ensure the menu button is visible */
+  }
+
+  .ant-menu-item {
+      padding: 3px 16px; /* Adjust padding for menu items */
+  }
+
+  .ant-menu-item .anticon {
+      margin-right: 8px; /* Space between icon and text */
+  }
+}
+
+/* Ensure content is not too wide on larger screens */
+

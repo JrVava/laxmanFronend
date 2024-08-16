@@ -17,13 +17,20 @@ export const Listing = () => {
     const [filteredData, setFilteredData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [searchValue, setSearchValue] = useState('');
+    const [searchLocation, setSearchLocation] = useState('');
     const [dateRange, setDateRange] = useState([]);
     const user = useSelector((state) => state.auth.user);
     const [grandTotal, setGrandTotal] = useState(0);
-    const [errorMessage,setErrorMessage] = useState();
+    const [errorMessage, setErrorMessage] = useState();
 
     const navigate = useNavigate();
     useDocumentTitle('Billing Listing');
+
+    useEffect(() => {
+        if (user && user.token) {
+            getBills(user.token);
+        }
+    }, [user]);
 
     const getBills = async (token, params = {}) => {
         setLoading(true);
@@ -59,19 +66,15 @@ export const Listing = () => {
         }
     };
 
-    useEffect(() => {
-        if (user && user.token) {
-            getBills(user.token);
-        }
-    }, [user]);
-
-    const handleSearch = async () => {
+    const handleSearch = async (searchValue,searchLocation, dateRange) => {
         const [startDate, endDate] = dateRange;
         const searchData = {
             customer_name: searchValue,
+            location:searchLocation,
             start_date: startDate ? startDate.format('YYYY-MM-DD') : undefined,
             end_date: endDate ? endDate.format('YYYY-MM-DD') : undefined,
         };
+        
 
         if (user && user.token) {
             try {
@@ -105,9 +108,12 @@ export const Listing = () => {
                 setData(formattedData);
                 setFilteredData(formattedData);
                 setGrandTotal(+parseFloat(response.data.totalGrandTotal).toFixed(2));
+                if (searchData.customer_name === '') {
+                    setGrandTotal(0);
+                }
             } catch (error) {
                 if (error.response && error.response.status === 404) {
-                    setErrorMessage('Endpoint not found or incorrect.');
+                    setErrorMessage(error.response.data.error);
                 } else {
                     setErrorMessage('Error searching bills: ' + error.message);
                 }
@@ -118,8 +124,27 @@ export const Listing = () => {
         }
     };
 
+    const handleDateRangeChange = (dates) => {
+        setDateRange(dates);
+        handleSearch(searchValue,searchLocation, dates);
+    };
+    const handleSearchValueChange = (e) => {
+        const value = e.target.value;
+
+        setSearchValue(value);
+        handleSearch(value,searchLocation, dateRange);
+    };
+
+    const handleSearchLocationChange = (e) => {
+        const inputLocation = e.target.value;
+
+        setSearchLocation(inputLocation);
+        handleSearch(searchValue,inputLocation, dateRange);
+    };
+
     const handleReset = () => {
         setSearchValue('');
+        setSearchLocation('');
         setDateRange([]);
         setGrandTotal(0);
         getBills(user.token); // Fetch all bills again
@@ -131,10 +156,21 @@ export const Listing = () => {
 
     const columns = [
         {
-            title: 'Sr.',
+            title: 'Bill',
             key: 'sr',
             render: (text, record, index) => (
-                <div>{index + 1}</div>
+                <div>
+                    #{record.billing_detail.id}
+                </div>
+            ),
+        },
+        {
+            title: 'Date',
+            key: 'date',
+            render: (text, record, index) => (
+                <div>
+                    {moment(record.billing_detail.billing_date).format('DD MMMM, YYYY')}
+                </div>
             ),
         },
         {
@@ -156,11 +192,20 @@ export const Listing = () => {
             ),
         },
         {
+            title: 'Amount',
+            key: 'amount',
+            render: (text, record) => (
+                <div>
+                    {record.billing_detail.grand_total}
+                </div>
+            ),
+        },
+        {
             title: 'Actions',
             key: 'actions',
             render: (_, bill) => (
                 <Space>
-                     <Button
+                    <Button
                         type="link"
                         icon={<EyeOutlined />}
                         onClick={() => handleView(bill.id)}
@@ -169,13 +214,13 @@ export const Listing = () => {
                     </Button>
 
                     <Link to={`/edit-bill/${bill.id}`}>
-                    <Button
-                        type="link"
-                        icon={<EditOutlined />}
-                    >
-                        Edit
-                    </Button>
-                </Link>
+                        <Button
+                            type="link"
+                            icon={<EditOutlined />}
+                        >
+                            Edit
+                        </Button>
+                    </Link>
                 </Space>
             ),
         },
@@ -255,6 +300,7 @@ export const Listing = () => {
                     shape="round"
                     size="large"
                     icon={<FileAddOutlined />}
+                    style={{ marginBottom: 16 }}
                 >
                     New Bill
                 </Button>
@@ -268,60 +314,56 @@ export const Listing = () => {
                     minHeight: 280,
                 }}
             >
-                <Row gutter={[16, 16]}>
-                    <Col>
-                    <Input
+                <Row gutter={[16, 16]} justify="start">
+                    <Col xs={24} sm={12} md={8} lg={6}>
+                        <Input
                             placeholder="Search by Customer Name"
                             value={searchValue}
-                            onChange={e => setSearchValue(e.target.value)}
-                            style={{ width: 200, marginRight: 8 }}
+                            onChange={handleSearchValueChange}
                         />
-                        {/* <Search
-                            placeholder="Search by phone"
-                            enterButton
-                            value={searchValue}
-                            onChange={e => setSearchValue(e.target.value)}
-                            style={{ width: 200 }}
-                            prefix={<span />}
-                        /> */}
                     </Col>
-                    <Col>
+                    <Col xs={24} sm={12} md={8} lg={6}>
+                        <Input
+                            placeholder="Search by Location"
+                            value={searchLocation}
+                            onChange={handleSearchLocationChange}
+                        />
+                    </Col>
+                    <Col xs={24} sm={12} md={8} lg={6}>
                         <RangePicker
                             format="YYYY-MM-DD"
-                            onChange={dates => setDateRange(dates)}
+                            onChange={handleDateRangeChange}
                             value={dateRange}
+                            style={{ width: '100%' }}
                         />
                     </Col>
-                    <Col>
+
+                    <Col xs={24} sm={12} md={4} lg={3}>
                         <Button
                             type="primary"
-                            onClick={handleSearch}
-                        >
-                            Search
-                        </Button>
-                    </Col>
-                    <Col>
-                        <Button
                             onClick={handleReset}
+                            style={{ width: '100%' }}
                         >
                             Reset
                         </Button>
                     </Col>
                 </Row>
-                <Table
-                    columns={columns}
-                    dataSource={filteredData}
-                    loading={loading}
-                    rowKey="key"
-                    expandable={{
-                        expandedRowRender,
-                        rowExpandable: (record) => record.billing_detail && record.billings.length > 0,
-                    }}
-                    locale={{
-                        emptyText: data.length === 0 && !loading ? 'No data available' : undefined,
-                    }}
-                />
-               {grandTotal !== 0 && (
+
+                    <Table
+                        columns={columns}
+                        dataSource={filteredData}
+                        pagination={{ pageSize: 10 }}
+                        loading={loading}
+                        expandable={{ expandedRowRender }}
+                        scroll={{ x: 800 }} // Makes the table scrollable horizontally on small screens
+                        style={{ marginTop: 16 }}
+                        locale={{
+                            emptyText: errorMessage || 'No data available',
+                        }}
+                    />
+                
+
+                {grandTotal !== 0 && (
                     <div
                         dangerouslySetInnerHTML={{ __html: `<strong>Total:</strong> ${grandTotal}` }}
                     />

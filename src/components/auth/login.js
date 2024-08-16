@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { Form, Input, Button } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Form, Input, Button, Spin } from 'antd';
 import { UserOutlined, LockOutlined, EyeTwoTone, EyeInvisibleOutlined } from '@ant-design/icons';
 import { api } from '../../util/api';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,12 +8,14 @@ import { useNavigate } from 'react-router-dom';
 import useDocumentTitle from '../../hook/useDocumentTitle';
 
 const Login = () => {
+  const [loading, setLoading] = useState(false); // State to track loading
   const dispatch = useDispatch();
   const navigate = useNavigate();
   useDocumentTitle('Login');
   const user = useSelector((state) => state.auth.user);
 
   const onFinish = async (values) => {
+    setLoading(true); // Start loading
     try {
       const login = await api.post('/sign-in', values)
       const user = login.data;
@@ -22,6 +24,8 @@ const Login = () => {
       navigate('/bills');
     } catch (error) {
       console.error('Error during API call:', error.message);
+    }finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -68,8 +72,9 @@ const Login = () => {
               type="primary"
               htmlType="submit"
               className="login-form-button"
+              disabled={loading} // Disable button while loading
             >
-              Log in
+              {loading ? <Spin /> : 'Log in'} {/* Show spinner if loading */}
             </Button>
             <span className='ant-checkbox-wrapper'>Or{" "}</span>
             <a href="" className='sign-up-btn'>register now!</a>

@@ -162,6 +162,7 @@ export const ViewBill = () => {
             dataSource={records.map((record, index) => ({
                 ...record,
                 sr: pageIndex * recordsPerPage + index + 1, // Maintain serial number across pages
+                // sr: index + 1
             }))}
             rowKey="id"
             pagination={false}

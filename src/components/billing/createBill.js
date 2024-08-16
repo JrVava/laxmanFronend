@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Input, Button, Popconfirm, Layout, Breadcrumb, message, Select, Row, Col, DatePicker, Card } from 'antd';
+import { Form, Input, Button, Popconfirm, Layout, Breadcrumb, message, Select, Row, Col, DatePicker, Card, Spin } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import { api } from '../../util/api';
@@ -10,6 +10,7 @@ import dayjs from 'dayjs';
 const { Option } = Select;
 
 export const CreateBill = () => {
+  const [loading, setLoading] = useState(false);
   const user = useSelector((state) => state.auth.user);
   const [total, setTotal] = useState(0);
   const [totalTax, setTotalTax] = useState(0);
@@ -106,6 +107,7 @@ export const CreateBill = () => {
   ];
 
   const handleSubmit = async (values) => {
+    setLoading(true);
     try {
       calculateTotals();
       const { token } = user;
@@ -122,7 +124,7 @@ export const CreateBill = () => {
       });
       message.success('Bill created successfully!');
       console.log('API Response:', response.data);
-
+      setLoading(false);
       form.resetFields();
       form.setFieldsValue({
         items: [{ description: '', qty: '', rate: '', amount: '', unit: 'piece' }]
@@ -138,17 +140,17 @@ export const CreateBill = () => {
   };
 
   return (
-    <Layout style={{ padding: '0 24px 24px' }}>
+    <Layout style={{ padding: '0 16px 16px' }}>
       <Breadcrumb style={{ margin: '16px 0' }} items={breadcrumbItems} />
-      <Card title="Create New Bill" bordered={false} style={{ backgroundColor: 'white', padding: '20px', borderRadius: '18px' }}>
+      <Card title="Create New Bill" bordered={false} style={{ backgroundColor: 'white', padding: '14px', borderRadius: '18px' }}>
         <Form
           form={form}
           name="dynamic_form_nest_item"
           onFinish={handleSubmit}
           autoComplete="off"
         >
-          <Row gutter={16}>
-            <Col span={6}>
+          <Row gutter={[16, 16]} style={{ paddingBottom:'10px' }}>
+          <Col xs={24} md={3}>
               <Form.Item
                 name="title"
                 label="Title"
@@ -164,7 +166,7 @@ export const CreateBill = () => {
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={9}>
+            <Col xs={24} md={6}>
               <Form.Item
                 name="customer_name"
                 label="Customer Name"
@@ -173,11 +175,7 @@ export const CreateBill = () => {
                 <Input placeholder="Customer Name" />
               </Form.Item>
             </Col>
-           
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={9}>
+            <Col xs={24} md={6}>
               <Form.Item
                 name="location"
                 label="Location"
@@ -186,8 +184,7 @@ export const CreateBill = () => {
                 <Input placeholder="Location" />
               </Form.Item>
             </Col>
-
-            <Col span={9}>
+            <Col xs={24} md={6}>
               <Form.Item
                 name="billing_date"
                 label="Billing Date"
@@ -206,11 +203,11 @@ export const CreateBill = () => {
               <>
                 {fields.map(({ key, name }, index) => (
                   <Card key={key} bordered={true} style={{ marginBottom: 16 }}>
-                    <Row gutter={16} align="middle">
-                      <Col span={2}>
+                    <Row gutter={[16, 16]} align="middle" style={{display: 'flex',alignItems: 'baseline'}}>
+                    <Col xs={24} md={1}>
                         SR. {index + 1}
                       </Col>
-                      <Col span={4}>
+                      <Col xs={24} md={8}>
                         <Form.Item
                           name={[name, 'description']}
                           label="Description"
@@ -220,7 +217,7 @@ export const CreateBill = () => {
                         </Form.Item>
                       </Col>
 
-                      <Col span={4}>
+                      <Col xs={24} md={3}>
                         <Form.Item
                           name={[name, 'qty']}
                           label="Quantity"
@@ -234,8 +231,19 @@ export const CreateBill = () => {
                           />
                         </Form.Item>
                       </Col>
-
-                      <Col span={4}>
+                      <Col xs={24} md={4}>
+                        <Form.Item
+                          name={[name, 'unit']}
+                          label="Unit"
+                          rules={[{ required: false, message: 'Unit (optional)' }]}
+                        >
+                          <Select placeholder="Select Unit">
+                            <Option value="piece">Piece</Option>
+                            <Option value="dozen">Dozen</Option>
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={3}>
                         <Form.Item
                           name={[name, 'rate']}
                           label="Rate"
@@ -249,8 +257,8 @@ export const CreateBill = () => {
                           />
                         </Form.Item>
                       </Col>
-
-                      <Col span={4}>
+                      
+                      <Col xs={24} md={3}>
                         <Form.Item
                           name={[name, 'amount']}
                           label="Amount"
@@ -260,20 +268,8 @@ export const CreateBill = () => {
                         </Form.Item>
                       </Col>
 
-                      <Col span={4}>
-                        <Form.Item
-                          name={[name, 'unit']}
-                          label="Unit"
-                          rules={[{ required: false, message: 'Unit (optional)' }]}
-                        >
-                          <Select placeholder="Select Unit">
-                            <Option value="piece">Piece</Option>
-                            <Option value="dozen">Dozen</Option>
-                          </Select>
-                        </Form.Item>
-                      </Col>
-
-                      <Col span={2}>
+                    
+                      <Col xs={6} md={1}>
                         <Popconfirm
                           title="Are you sure you want to delete this item?"
                           onConfirm={() => handleRemove(index)}
@@ -302,8 +298,8 @@ export const CreateBill = () => {
             )}
           </Form.List>
 
-           <Row gutter={16}>
-            <Col span={12} offset={12}>
+          <Row gutter={[16, 16]} style={{ paddingTop:'10px',paddingBottom:'10px' }}>
+           <Col xs={24} md={{ span: 12, offset: 12 }}>
               <Card title="Totals" bordered={true}>
                 <Form.Item label="Total">
                   <div>{total === 0 ? "0.00" : total}</div>
@@ -329,9 +325,15 @@ export const CreateBill = () => {
                 <Form.Item label="Grand Total">
                   <div>{grandTotal === 0 ? "0.00" : grandTotal}</div>
                 </Form.Item>
+
               </Card>
             </Col>
           </Row>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" disabled={loading}>
+              {loading ? <Spin /> : 'Save Changes'}
+            </Button>
+          </Form.Item>
         </Form>
       </Card>
     </Layout>
